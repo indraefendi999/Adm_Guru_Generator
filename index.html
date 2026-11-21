@@ -36,26 +36,84 @@
   </script>
   <link rel="stylesheet" href="styles.css">
 </head>
-<body class="antialiased min-h-screen flex flex-col md:flex-row">
+<body class="antialiased min-h-screen flex flex-col bg-[#0c1222]">
 
   <!-- ================= NOTIFICATION TOAST CONTAINER ================= -->
   <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none no-print"></div>
 
-  <!-- ================= MOBILE HEADER TOPBAR ================= -->
-  <header class="md:hidden glass-panel m-3 p-3 flex items-center justify-between no-print z-40">
-    <div class="flex items-center gap-2.5">
-      <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
-        GS
+  <!-- ================= FULL-WIDTH GLOBAL STICKY TOPBAR (SESUAI SCREENSHOT 2) ================= -->
+  <header class="w-full glass-topbar sticky top-0 z-40 px-3 sm:px-6 py-2 flex flex-wrap items-center justify-between gap-2.5 no-print">
+    
+    <!-- Left: Hamburger (Mobile) + Brand Mini + Status Pills (TA & Cloud) -->
+    <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap">
+      <!-- Mobile Sidebar Toggle -->
+      <button onclick="app.toggleMobileSidebar()" class="md:hidden p-1.5 rounded-lg bg-white/80 border border-slate-200 text-slate-700 hover:bg-white shadow-2xs" title="Buka Menu Sidebar">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+      </button>
+
+      <!-- Brand Mini Logo -->
+      <div onclick="app.navigate('dashboard')" class="cursor-pointer flex items-center gap-1.5 mr-1" title="Ke Dashboard Utama">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-blue-600 via-indigo-600 to-emerald-500 flex items-center justify-center text-white shadow-xs">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+        </div>
+        <span class="font-bold text-xs text-slate-900 hidden lg:inline tracking-tight">GuruSuite</span>
       </div>
-      <div>
-        <h1 class="font-bold text-sm text-slate-900 leading-none">GuruSuite AI</h1>
-        <p class="text-[10px] text-slate-500">Administrasi Guru Kelas</p>
+
+      <!-- Pill 1: TA & Semester (sesuai SS: TA 2024/2025 – Genap) -->
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/95 border border-slate-200/90 shadow-2xs text-xs font-semibold text-slate-800">
+        <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+        <span id="topbar-ta-label">TA 2024/2025 – Genap</span>
+      </div>
+
+      <!-- Pill 2: Hubungkan Google Sheets (sesuai SS: Tombol Kuning-Emas) -->
+      <button onclick="app.navigate('supabase')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-50/90 hover:bg-amber-100/95 border border-amber-300/80 shadow-2xs text-xs font-semibold text-amber-950 transition-all cursor-pointer">
+        <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+        <svg class="w-3.5 h-3.5 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+        <span id="topbar-cloud-label">Hubungkan Google Sheets</span>
+      </button>
+    </div>
+
+    <!-- Center: Global Omnibar Search (sesuai SS: Cari NISN, nama siswa, guru...) -->
+    <div class="flex-1 max-w-sm mx-1 min-w-[190px]">
+      <div class="relative">
+        <svg class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+        <input type="text" id="topbar-search-input" oninput="app.handleGlobalSearch(this.value)" placeholder="Cari NISN, nama siswa, guru..." class="w-full pl-8 pr-3 py-1.5 rounded-full border border-slate-200 bg-white/90 focus:bg-white text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-2xs">
       </div>
     </div>
-    <button onclick="app.toggleMobileSidebar()" class="p-2 rounded-lg bg-white/70 border border-slate-200 text-slate-700">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
-    </button>
+
+    <!-- Right: Action Icons & Teacher Profile (sesuai SS: Ibu Ratna Sari, S.Pd. + RS) -->
+    <div class="flex items-center gap-2 sm:gap-2.5">
+      
+      <!-- Action Icon 1: Green gear (sesuai SS) -->
+      <button onclick="app.openSettingsModal()" title="Pengaturan Kop & AI" class="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+      </button>
+
+      <!-- Action Icon 2: Exit / Logout icon (sesuai SS) -->
+      <button onclick="app.logoutOrSwitchPortal()" title="Keluar / Ganti Akun" class="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+      </button>
+
+      <!-- Separator bar (sesuai SS) -->
+      <div class="h-6 w-px bg-slate-300"></div>
+
+      <!-- Teacher Profile & Avatar (sesuai SS: Ibu Ratna Sari, S.Pd. & RS) -->
+      <div class="flex items-center gap-2 cursor-pointer" onclick="app.openSettingsModal()" title="Klik untuk edit profil guru">
+        <div class="text-right hidden sm:block">
+          <h4 class="font-bold text-xs text-slate-900 leading-tight" id="topbar-teacher-name">Ibu Ratna Sari, S.Pd.</h4>
+          <p class="text-[10px] text-slate-500" id="topbar-teacher-role">Guru Matematika & Wali Kelas VII-A</p>
+        </div>
+        <!-- Avatar Badge (sesuai SS: Lingkaran Biru RS) -->
+        <div class="w-8 h-8 rounded-full bg-blue-100 border border-blue-200 text-blue-700 flex items-center justify-center font-bold text-xs shadow-2xs" id="topbar-teacher-avatar">
+          RS
+        </div>
+      </div>
+
+    </div>
   </header>
+
+  <!-- ================= MAIN LAYOUT WRAPPER (BELOW TOPBAR) ================= -->
+  <div class="flex flex-1 w-full min-h-[calc(100vh-65px)] overflow-hidden">
 
   <!-- ================= SIDEBAR NAVIGASI (LIQUID GLASS) ================= -->
   <aside id="main-sidebar" class="hidden md:flex flex-col w-72 h-screen sticky top-0 glass-sidebar p-4 overflow-y-auto no-print z-30 transition-all duration-300">
@@ -89,24 +147,34 @@
         <span class="flex-1 text-left">Dashboard</span>
       </button>
 
-      <!-- Top Action 2: Notifikasi -->
-      <button id="menu-btn-notifikasi" onclick="app.navigate('notifikasi')" class="sidebar-link w-full justify-between">
+      <!-- Top Action 2: Notifikasi (Popup Modal Center) -->
+      <button id="menu-btn-notifikasi" onclick="app.openNotificationCenter()" class="sidebar-link w-full justify-between">
         <div class="flex items-center gap-3">
           <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
           <span>Notifikasi</span>
         </div>
-        <span class="w-5 h-5 rounded-full bg-rose-500 text-white text-[11px] font-bold flex items-center justify-center shadow-xs">4</span>
+        <span id="notif-badge-counter" class="w-5 h-5 rounded-full bg-rose-500 text-white text-[11px] font-bold flex items-center justify-center shadow-xs">4</span>
       </button>
 
       <!-- SECTION 1: AKADEMIK & MASTER DATA -->
       <div class="sidebar-section-title">AKADEMIK & MASTER DATA</div>
       
+      <!-- 1A: Data Siswa (Terpisah) -->
       <button id="menu-btn-siswa" onclick="app.navigate('siswa')" class="sidebar-link w-full justify-between">
         <div class="flex items-center gap-3">
-          <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-          <span>Data Siswa & Guru</span>
+          <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /></svg>
+          <span>Data Siswa</span>
         </div>
-        <span class="text-[10px] font-semibold px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md">Guru (Siswa)</span>
+        <span class="text-[10px] font-semibold px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-md" id="badge-total-students">8 Siswa</span>
+      </button>
+
+      <!-- 1B: Data Guru & GTK (Terpisah) -->
+      <button id="menu-btn-guru" onclick="app.navigate('guru')" class="sidebar-link w-full justify-between">
+        <div class="flex items-center gap-3">
+          <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+          <span>Data Guru & GTK</span>
+        </div>
+        <span class="text-[10px] font-semibold px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-md" id="badge-total-teachers">Dewan Guru</span>
       </button>
 
       <button id="menu-btn-kelas" onclick="app.navigate('kelas')" class="sidebar-link w-full">
@@ -125,6 +193,12 @@
       <button id="menu-btn-absensi" onclick="app.navigate('absensi')" class="sidebar-link dashed-pill w-full">
         <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
         <span>Absensi Harian</span>
+      </button>
+
+      <!-- NEW: Jurnal Mengajar KBM -->
+      <button id="menu-btn-jurnal" onclick="app.navigate('jurnal')" class="sidebar-link dashed-pill w-full">
+        <svg class="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5" /></svg>
+        <span>Jurnal Mengajar (KBM)</span>
       </button>
 
       <button id="menu-btn-modul" onclick="app.navigate('modul')" class="sidebar-link dashed-pill w-full">
@@ -146,6 +220,12 @@
       <button id="menu-btn-rapor" onclick="app.navigate('rapor')" class="sidebar-link dashed-pill w-full">
         <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
         <span>Buku Nilai & Rapor</span>
+      </button>
+
+      <!-- PILAR 2: PROJEK P5 KURIKULUM MERDEKA -->
+      <button id="menu-btn-p5" onclick="app.navigate('p5')" class="sidebar-link dashed-pill w-full">
+        <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" /></svg>
+        <span>Projek P5 (Pancasila)</span>
       </button>
 
       <!-- SECTION 3: KEUANGAN & TABUNGAN -->
@@ -178,66 +258,7 @@
   </aside>
 
   <!-- ================= MAIN CONTENT VIEWPORT ================= -->
-  <main class="flex-1 min-h-screen p-4 sm:p-6 lg:p-8 overflow-y-auto">
-
-    <!-- ================= TOPBAR HEADER RESMI (SESUAI SCREENSHOT) ================= -->
-    <header class="glass-panel p-2.5 px-4 mb-6 flex flex-wrap items-center justify-between gap-3 no-print">
-      
-      <!-- Left: Status Pills (TA & Cloud) -->
-      <div class="flex items-center gap-2.5 flex-wrap">
-        <!-- Pill 1: TA & Semester (sesuai SS: TA 2024/2025 – Genap) -->
-        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/95 border border-slate-200/90 shadow-2xs text-xs font-semibold text-slate-800">
-          <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
-          <span id="topbar-ta-label">TA 2024/2025 – Genap</span>
-        </div>
-
-        <!-- Pill 2: Hubungkan Google Sheets (sesuai SS: Tombol Kuning-Emas) -->
-        <button onclick="app.navigate('supabase')" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50/90 hover:bg-amber-100/95 border border-amber-300/80 shadow-2xs text-xs font-semibold text-amber-950 transition-all cursor-pointer">
-          <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-          <svg class="w-3.5 h-3.5 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-          <span id="topbar-cloud-label">Hubungkan Google Sheets</span>
-        </button>
-      </div>
-
-      <!-- Center: Global Omnibar Search (sesuai SS: Cari NISN, nama siswa, guru...) -->
-      <div class="flex-1 max-w-sm mx-1 min-w-[200px]">
-        <div class="relative">
-          <svg class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-          <input type="text" id="topbar-search-input" oninput="app.handleGlobalSearch(this.value)" placeholder="Cari NISN, nama siswa, guru..." class="w-full pl-8 pr-3 py-1.5 rounded-full border border-slate-200 bg-white/90 focus:bg-white text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-2xs">
-        </div>
-      </div>
-
-      <!-- Right: Action Icons & Teacher Profile (sesuai SS: Ibu Ratna Sari, S.Pd. + RS) -->
-      <div class="flex items-center gap-2.5">
-        
-        <!-- Action Icon 1: Green gear (sesuai SS) -->
-        <button onclick="app.openSettingsModal()" title="Pengaturan Cepat" class="p-1 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-colors">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-        </button>
-
-        <!-- Action Icon 2: Exit / Logout icon (sesuai SS) -->
-        <button onclick="app.logoutOrSwitchPortal()" title="Keluar / Ganti Akun" class="p-1 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-        </button>
-
-        <!-- Separator bar (sesuai SS) -->
-        <div class="h-6 w-px bg-slate-200"></div>
-
-        <!-- Teacher Profile & Avatar (sesuai SS: Ibu Ratna Sari, S.Pd. & RS) -->
-        <div class="flex items-center gap-2 cursor-pointer" onclick="app.openSettingsModal()" title="Klik untuk edit profil guru">
-          <div class="text-right hidden sm:block">
-            <h4 class="font-bold text-xs text-slate-900 leading-tight" id="topbar-teacher-name">Ibu Ratna Sari, S.Pd.</h4>
-            <p class="text-[10px] text-slate-500" id="topbar-teacher-role">Guru Matematika & Wali Kelas VII-A</p>
-          </div>
-          <!-- Avatar Badge (sesuai SS: Lingkaran Biru RS) -->
-          <div class="w-8 h-8 rounded-full bg-blue-100 border border-blue-200 text-blue-700 flex items-center justify-center font-bold text-xs shadow-2xs" id="topbar-teacher-avatar">
-            RS
-          </div>
-        </div>
-
-      </div>
-
-    </header>
+  <main id="main-content" class="flex-1 min-h-[calc(100vh-65px)] p-4 sm:p-6 lg:p-8 overflow-y-auto">
 
     <!-- ================= 1. VIEW: DASHBOARD ================= -->
     <section id="pane-dashboard" class="space-y-6">
@@ -345,17 +366,22 @@
 
     </section>
 
-    <!-- ================= 2. VIEW: DATA SISWA & GURU ================= -->
+    <!-- ================= 2A. VIEW: DATA SISWA ================= -->
     <section id="pane-siswa" class="hidden space-y-5">
       <div class="glass-panel p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 class="text-lg font-bold text-slate-900">Data Siswa & Profil Guru Kelas</h2>
-          <p class="text-xs text-slate-500">Master data murid untuk keperluan absensi, tabungan, dan CBT ujian online.</p>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-bold mb-1 border border-blue-200">
+            <span>🎓 Master Kesiswaan</span>
+          </div>
+          <h2 class="text-xl font-extrabold text-slate-900">Buku Induk & Data Siswa Kelas</h2>
+          <p class="text-xs text-slate-500">Basis data murid untuk absensi, leger rapor merdeka, kuis CBT, dan tabungan.</p>
         </div>
-        <button onclick="app.openAddStudentModal()" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-          Tambah Siswa Baru
-        </button>
+        <div class="flex items-center gap-2 flex-wrap">
+          <button onclick="app.openAddStudentModal()" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+            Tambah Siswa Baru
+          </button>
+        </div>
       </div>
 
       <div class="glass-panel p-4 overflow-x-auto">
@@ -371,6 +397,56 @@
             </tr>
           </thead>
           <tbody id="student-table-tbody" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= 2B. VIEW: DATA GURU & GTK ================= -->
+    <section id="pane-guru" class="hidden space-y-5">
+      <div class="glass-panel p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-bold mb-1 border border-purple-200">
+            <span>👨‍🏫 Master Pendidik & Tenaga Kependidikan (GTK)</span>
+          </div>
+          <h2 class="text-xl font-extrabold text-slate-900">Data Dewan Guru & Staf Pengajar</h2>
+          <p class="text-xs text-slate-500">Direktori resmi pendidik, wali kelas, guru mata pelajaran, NIP, dan kontak pembinaan.</p>
+        </div>
+        <button onclick="app.openAddTeacherModal()" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+          Tambah Guru Baru
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="glass-panel-subtle p-4 border-l-4 border-l-purple-500">
+          <span class="text-xs text-slate-500 block">Total Dewan Guru</span>
+          <span class="text-2xl font-bold text-slate-900" id="stat-total-teachers">4 Orang</span>
+        </div>
+        <div class="glass-panel-subtle p-4 border-l-4 border-l-blue-500">
+          <span class="text-xs text-slate-500 block">Status ASN (PNS / PPPK)</span>
+          <span class="text-2xl font-bold text-slate-900" id="stat-asn-teachers">3 Orang</span>
+        </div>
+        <div class="glass-panel-subtle p-4 border-l-4 border-l-emerald-500">
+          <span class="text-xs text-slate-500 block">Wali Kelas Aktif</span>
+          <span class="text-2xl font-bold text-slate-900">Kelas VII-A</span>
+        </div>
+      </div>
+
+      <div class="glass-panel p-4 overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-slate-200 text-slate-500 uppercase font-semibold">
+              <th class="py-2.5 px-3">No</th>
+              <th class="py-2.5 px-3">NIP / NUPTK</th>
+              <th class="py-2.5 px-3">Nama Lengkap & Gelar</th>
+              <th class="py-2.5 px-3">Jabatan & Tugas</th>
+              <th class="py-2.5 px-3">Mata Pelajaran</th>
+              <th class="py-2.5 px-3">Status Pegawai</th>
+              <th class="py-2.5 px-3">WhatsApp</th>
+              <th class="py-2.5 px-3 text-right">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="teacher-table-tbody" class="divide-y divide-slate-100"></tbody>
         </table>
       </div>
     </section>
@@ -485,6 +561,130 @@
           <tbody id="attendance-table-tbody" class="divide-y divide-slate-100"></tbody>
         </table>
       </div>
+    </section>
+
+    <!-- ================= 5B. VIEW: JURNAL MENGAJAR (AGENDA KBM HARIAN) ================= -->
+    <section id="pane-jurnal" class="hidden space-y-6">
+      
+      <div class="glass-panel p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-100 text-rose-800 text-xs font-bold mb-1 border border-rose-200">
+            <span>📝 Administrasi Supervisi Mengajar</span>
+          </div>
+          <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Buku Jurnal Harian Mengajar & Agenda KBM</h2>
+          <p class="text-xs text-slate-500">Catat ketercapaian TP, presensi jam tatap muka, dan refleksi pembelajaran harian siap supervisi.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="app.exportJournalWord()" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-1.5 shadow-2xs">
+            <span>📥</span> Ekspor Word (.doc)
+          </button>
+          <button onclick="app.printJournalSheet()" class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs flex items-center gap-1.5 shadow-xs">
+            <span>🖨️</span> Cetak Jurnal Supervisi (A4)
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Form Input Jurnal -->
+        <div class="lg:col-span-5 glass-panel p-5 space-y-4">
+          <div class="border-b border-slate-200 pb-3">
+            <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+              <span>✍️</span> Catat Agenda Tatap Muka Hari Ini
+            </h3>
+            <p class="text-xs text-slate-500">Lengkapi agenda mengajar untuk rekaman supervisi.</p>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Tanggal KBM</label>
+                <input type="date" id="journal-input-date" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-medium">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Jam Pelajaran Ke-</label>
+                <input type="text" id="journal-input-hours" value="Jam 1 - 3 (07.30 - 09.30)" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Kelas / Rombel</label>
+                <input type="text" id="journal-input-class" value="Kelas VII-A" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-medium">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Mata Pelajaran</label>
+                <input type="text" id="journal-input-mapel" value="Matematika" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-medium">
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Materi Pokok & Capaian TP</label>
+              <textarea id="journal-input-material" rows="2" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white leading-relaxed" placeholder="Contoh: Operasi perkalian dan pembagian bilangan bulat bertanda negatif..."></textarea>
+            </div>
+
+            <div class="grid grid-cols-4 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-center">
+              <div>
+                <span class="text-[10px] text-slate-500 font-bold block">Hadir</span>
+                <input type="number" id="journal-att-h" value="7" class="w-full text-center py-1 rounded border border-slate-300 bg-white font-bold text-xs">
+              </div>
+              <div>
+                <span class="text-[10px] text-blue-600 font-bold block">Sakit</span>
+                <input type="number" id="journal-att-s" value="1" class="w-full text-center py-1 rounded border border-slate-300 bg-white font-bold text-xs">
+              </div>
+              <div>
+                <span class="text-[10px] text-amber-600 font-bold block">Izin</span>
+                <input type="number" id="journal-att-i" value="0" class="w-full text-center py-1 rounded border border-slate-300 bg-white font-bold text-xs">
+              </div>
+              <div>
+                <span class="text-[10px] text-rose-600 font-bold block">Alpa</span>
+                <input type="number" id="journal-att-a" value="0" class="w-full text-center py-1 rounded border border-slate-300 bg-white font-bold text-xs">
+              </div>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="font-semibold text-slate-700">Refleksi KBM & Tindak Lanjut</label>
+                <button type="button" onclick="app.generateJournalRefleksiAI()" class="text-rose-600 hover:text-rose-700 font-bold text-[11px] flex items-center gap-1">
+                  <span>✨</span> AI Refleksi
+                </button>
+              </div>
+              <textarea id="journal-input-reflection" rows="3" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white leading-relaxed" placeholder="Klik 'AI Refleksi' atau tulis evaluasi pembelajaran..."></textarea>
+            </div>
+
+            <button onclick="app.saveJournalEntry()" class="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold shadow-xs transition-all">
+              💾 Simpan ke Buku Jurnal Mengajar
+            </button>
+          </div>
+        </div>
+
+        <!-- Rekap Tabel Jurnal Mengajar -->
+        <div class="lg:col-span-7 glass-panel p-5 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div>
+              <h3 class="font-bold text-sm text-slate-900">Rekapitulasi Jurnal Tatap Muka</h3>
+              <p class="text-[11px] text-slate-500">Histori agenda pembelajaran semester berjalan.</p>
+            </div>
+            <span class="text-xs font-semibold px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg" id="journal-total-badge">3 Pertemuan</span>
+          </div>
+
+          <div class="overflow-x-auto max-h-[500px]">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-100 font-bold border-b border-slate-300 text-slate-700">
+                  <th class="py-2 px-2.5 w-8">No</th>
+                  <th class="py-2 px-2.5 w-24">Tgl & Jam</th>
+                  <th class="py-2 px-2.5 w-20">Mapel</th>
+                  <th class="py-2 px-2.5">Materi & Refleksi Pembelajaran</th>
+                  <th class="py-2 px-2.5 w-16 text-center">Presensi</th>
+                  <th class="py-2 px-2 w-12 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="journal-table-tbody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </section>
 
     <!-- ================= 6. VIEW: GENERATOR MODUL AJAR (RPP MERDEKA) ================= -->
@@ -1039,7 +1239,218 @@
 
     </section>
 
-    <!-- ================= 10. VIEW: TABUNGAN SISWA ================= -->
+    <!-- ================= 10. VIEW: PROJEK P5 (PROFIL PELAJAR PANCASILA) ================= -->
+    <section id="pane-p5" class="hidden space-y-6">
+      
+      <!-- P5 Header & Tabs -->
+      <div class="glass-panel p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-100 text-teal-800 text-xs font-bold mb-1 border border-teal-200">
+            <span>🌟 Kurikulum Merdeka Kemendikbudristek</span>
+          </div>
+          <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Projek Penguatan Profil Pelajar Pancasila (P5)</h2>
+          <p class="text-xs text-slate-500">Susun modul projek karakter, input rubrik penilaian kelas (BB, MB, BSH, SB), dan cetak lembar rapor P5 resmi.</p>
+        </div>
+        <div class="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100/90 border border-slate-200 shadow-2xs">
+          <button id="p5-tab-modul-btn" onclick="app.switchP5SubTab('modul')" class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-teal-700 text-white shadow-xs transition-all">
+            📘 Modul Projek
+          </button>
+          <button id="p5-tab-matriks-btn" onclick="app.switchP5SubTab('matriks')" class="px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all">
+            📊 Matriks Rubrik Kelas
+          </button>
+          <button id="p5-tab-rapor-btn" onclick="app.switchP5SubTab('rapor')" class="px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all">
+            🖨️ Cetak Rapor P5
+          </button>
+        </div>
+      </div>
+
+      <!-- SUB-PANE 1: GENERATOR & EDITOR MODUL PROJEK P5 -->
+      <div id="p5-subpane-modul" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Input Form -->
+        <div class="lg:col-span-5 glass-panel p-5 space-y-4">
+          <div class="border-b border-slate-200 pb-3">
+            <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+              <span>⚙️</span> Konfigurasi Tema & Dimensi Projek
+            </h3>
+            <p class="text-xs text-slate-500">Pilih tema resmi Kemendikbudristek dan target capaian profil.</p>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Tema Resmi Projek (7 Tema Kemendikbud)</label>
+              <select id="p5-input-tema" onchange="app.onP5TemaChange()" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-medium">
+                <option value="Gaya Hidup Berkelanjutan">1. Gaya Hidup Berkelanjutan (Lingkungan & Sampah)</option>
+                <option value="Kearifan Lokal">2. Kearifan Lokal (Budaya & Kuliner Daerah)</option>
+                <option value="Bhinneka Tunggal Ika">3. Bhinneka Tunggal Ika (Toleransi & Keberagaman)</option>
+                <option value="Bangunlah Jiwa dan Raganya">4. Bangunlah Jiwa dan Raganya (Kesehatan & Karakter)</option>
+                <option value="Suara Demokrasi">5. Suara Demokrasi (Musyawarah & Kepemimpinan)</option>
+                <option value="Rekayasa dan Teknologi">6. Rekayasa dan Teknologi (Inovasi & Digital)</option>
+                <option value="Kewirausahaan">7. Kewirausahaan (Market Day & Kreasi Usaha)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Judul Projek P5</label>
+              <input type="text" id="p5-input-judul" value="Jejak Karbon Nol: Mengolah Sampah Organik Menjadi Kompos Cair & Pupuk Alami" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-medium">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Fase Pembelajaran</label>
+                <select id="p5-input-fase" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white">
+                  <option value="Fase A (Kelas I-II SD)">Fase A (Kelas I - II SD)</option>
+                  <option value="Fase B (Kelas III-IV SD)">Fase B (Kelas III - IV SD)</option>
+                  <option value="Fase C (Kelas V-VI SD)">Fase C (Kelas V - VI SD)</option>
+                  <option value="Fase D (Kelas VII-IX SMP)" selected>Fase D (Kelas VII - IX SMP)</option>
+                  <option value="Fase E (Kelas X SMA/SMK)">Fase E (Kelas X SMA/SMK)</option>
+                  <option value="Fase F (Kelas XI-XII SMA/SMK)">Fase F (Kelas XI - XII SMA/SMK)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Alokasi Waktu (JP)</label>
+                <input type="number" id="p5-input-jp" value="70" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white">
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Pilih Target Dimensi Profil Pelajar Pancasila</label>
+              <div class="space-y-1.5 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="p5-dim-1" checked class="rounded text-teal-600 focus:ring-teal-500">
+                  <span class="font-medium text-slate-800">1. Beriman & Bertakwa kepada Tuhan YME</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="p5-dim-2" class="rounded text-teal-600 focus:ring-teal-500">
+                  <span class="font-medium text-slate-800">2. Berkebinekaan Global</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="p5-dim-3" checked class="rounded text-teal-600 focus:ring-teal-500">
+                  <span class="font-medium text-slate-800">3. Bergotong Royong</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="p5-dim-4" class="rounded text-teal-600 focus:ring-teal-500">
+                  <span class="font-medium text-slate-800">4. Mandiri</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="p5-dim-5" checked class="rounded text-teal-600 focus:ring-teal-500">
+                  <span class="font-medium text-slate-800">5. Bernalar Kritis</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="p5-dim-6" class="rounded text-teal-600 focus:ring-teal-500">
+                  <span class="font-medium text-slate-800">6. Kreatif</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="pt-2 flex flex-col gap-2">
+              <button onclick="app.generateP5WithAI()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-teal-600 via-emerald-600 to-indigo-600 hover:from-teal-700 hover:to-indigo-700 text-white font-bold shadow-sm transition-all flex items-center justify-center gap-2">
+                <span>✨</span> Generate Modul Projek via AI
+              </button>
+              <button onclick="app.resetDefaultP5Project()" class="w-full py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold transition-all">
+                🔄 Muat Template Standar Nasional
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preview Document -->
+        <div class="lg:col-span-7 glass-panel p-5 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div>
+              <h3 class="font-bold text-sm text-slate-900">Pratinjau Dokumen Modul P5</h3>
+              <p class="text-[11px] text-slate-500">Format resmi panduan fasilitator siap ekspor dan cetak.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="app.exportP5Word()" class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1 shadow-2xs">
+                <span>📥</span> Word (.doc)
+              </button>
+              <button onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold flex items-center gap-1 shadow-2xs">
+                <span>🖨️</span> Cetak PDF
+              </button>
+            </div>
+          </div>
+
+          <!-- Document Sheet -->
+          <div id="p5-modul-preview-container" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm max-h-[600px] overflow-y-auto text-xs leading-relaxed text-slate-800 space-y-4"></div>
+        </div>
+      </div>
+
+      <!-- SUB-PANE 2: MATRIKS PENILAIAN RUBRIK KELAS P5 -->
+      <div id="p5-subpane-matriks" class="hidden glass-panel p-6 space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-bold text-base text-slate-900">Matriks Penilaian Rubrik P5 Siswa</h3>
+              <span class="text-xs px-2.5 py-0.5 rounded-md bg-teal-50 text-teal-800 border border-teal-200 font-semibold" id="p5-active-project-label">Projek 1: Gaya Hidup Berkelanjutan</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">Input tingkat ketercapaian sub-elemen: BB (Belum Berkembang), MB (Mulai Berkembang), BSH (Berkembang Sesuai Harapan), SB (Sangat Berkembang).</p>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="app.autoFillP5BSH()" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs flex items-center gap-1.5">
+              <span>⚡</span> Auto-Fill BSH Seluruh Siswa
+            </button>
+            <button onclick="app.generateAllP5NotesAI()" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-semibold text-xs shadow-xs flex items-center gap-1.5">
+              <span>✨</span> AI Catatan Proses
+            </button>
+            <button onclick="app.saveP5Assessments()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-xs">
+              💾 Simpan Nilai P5
+            </button>
+          </div>
+        </div>
+
+        <!-- Legend info -->
+        <div class="flex items-center gap-2 text-xs flex-wrap p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+          <span class="font-bold text-slate-700">Keterangan Skala:</span>
+          <span class="px-2 py-0.5 rounded text-[11px] badge-p5-bb">BB: Belum Berkembang</span>
+          <span class="px-2 py-0.5 rounded text-[11px] badge-p5-mb">MB: Mulai Berkembang</span>
+          <span class="px-2 py-0.5 rounded text-[11px] badge-p5-bsh">BSH: Berkembang Sesuai Harapan</span>
+          <span class="px-2 py-0.5 rounded text-[11px] badge-p5-sb">SB: Sangat Berkembang</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-100/90 text-slate-700 font-bold border-b border-slate-300 text-center">
+                <th class="py-2.5 px-2 w-10">No</th>
+                <th class="py-2.5 px-3 text-left w-44">Nama Siswa</th>
+                <th class="py-2 px-3 text-center" id="p5-col-dim-1">Dimensi 1: Beriman & Akhlak</th>
+                <th class="py-2 px-3 text-center" id="p5-col-dim-2">Dimensi 2: Gotong Royong</th>
+                <th class="py-2 px-3 text-center" id="p5-col-dim-3">Dimensi 3: Bernalar Kritis</th>
+                <th class="py-2.5 px-4 text-left w-64">Catatan Proses Fasilitator</th>
+              </tr>
+            </thead>
+            <tbody id="p5-matriks-tbody" class="divide-y divide-slate-200"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SUB-PANE 3: CETAK LEMBAR RAPOR P5 RESMI (A4) -->
+      <div id="p5-subpane-rapor" class="hidden space-y-4">
+        <!-- Control Bar -->
+        <div class="glass-panel p-4 flex flex-wrap items-center justify-between gap-3 no-print">
+          <div class="flex items-center gap-3">
+            <span class="text-xs font-semibold text-slate-700">Pilih Siswa:</span>
+            <select id="p5-rapor-student-select" onchange="app.renderP5StudentRapor(this.value)" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-800"></select>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="app.exportP5RaporWord()" class="px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-1.5 shadow-2xs">
+              <span>📥</span> Unduh Word (.doc)
+            </button>
+            <button onclick="window.print()" class="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs flex items-center gap-1.5 shadow-xs">
+              <span>🖨️</span> Cetak Lembar Rapor P5 (A4)
+            </button>
+          </div>
+        </div>
+
+        <!-- Printable Rapor Sheet -->
+        <div id="p5-print-rapor-sheet" class="paper-sheet bg-white p-8 sm:p-12 rounded-xl border border-slate-200 shadow-sm max-w-4xl mx-auto text-slate-900 leading-relaxed font-serif">
+          <!-- Dynamically populated by app.renderP5StudentRapor() -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ================= 11. VIEW: TABUNGAN SISWA ================= -->
     <section id="pane-tabungan" class="hidden space-y-5">
       <div class="glass-panel p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -1110,6 +1521,107 @@
     </section>
 
   </main>
+</div>
+
+  <!-- ================= MODAL: NOTIFICATION CENTER (GLASS POPUP) ================= -->
+  <div id="modal-notification-center" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4 overflow-y-auto no-print">
+    <div class="glass-modal max-w-xl w-full p-6 space-y-4 my-8">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-rose-500 to-amber-500 text-white flex items-center justify-center shadow-md">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-slate-900">Pusat Peringatan & Notifikasi Pintar</h3>
+            <p class="text-xs text-slate-500">Peringatan otomatis akademik, KBM, dan kas kelas</p>
+          </div>
+        </div>
+        <button onclick="app.closeNotificationCenter()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">✕</button>
+      </div>
+
+      <!-- Notification Alert List Container -->
+      <div id="notification-center-list" class="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+        <!-- Rendered dynamically by app.renderNotificationCenter() -->
+      </div>
+
+      <div class="pt-3 border-t border-slate-200 flex items-center justify-between">
+        <button onclick="app.markAllNotificationsRead()" class="text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors">Tandai Semua Sudah Dibaca</button>
+        <button onclick="app.closeNotificationCenter()" class="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition-colors">Tutup Notifikasi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: TAMBAH DATA GURU & GTK ================= -->
+  <div id="modal-add-guru" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4 overflow-y-auto no-print">
+    <div class="glass-modal max-w-lg w-full p-6 space-y-4 my-8">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center font-bold text-xs">GTK</div>
+          <h3 class="font-bold text-base text-slate-900" id="modal-guru-title">Tambah Pendidik & Tenaga Kependidikan</h3>
+        </div>
+        <button onclick="app.closeAddTeacherModal()" class="text-slate-400 hover:text-slate-600">✕</button>
+      </div>
+
+      <form id="form-add-guru" onsubmit="event.preventDefault(); app.saveTeacherFromModal();" class="space-y-3 text-xs">
+        <input type="hidden" id="modal-guru-id">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">NIP / NUPTK</label>
+          <input type="text" id="guru-nip" required placeholder="Contoh: 19880415 201101 2 004" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Nama Lengkap & Gelar</label>
+          <input type="text" id="guru-nama" required placeholder="Contoh: Dra. Hj. Siti Nurhaliza, M.Pd." class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Jabatan / Tugas</label>
+            <input type="text" id="guru-jabatan" required placeholder="Contoh: Guru Matematika & Wali Kelas" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Mata Pelajaran Diampu</label>
+            <input type="text" id="guru-mapel" required placeholder="Contoh: Matematika" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Status Kepegawaian</label>
+            <select id="guru-status" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white">
+              <option value="PNS">PNS</option>
+              <option value="PPPK">PPPK</option>
+              <option value="GTT">GTT (Guru Tidak Tetap)</option>
+              <option value="Honorer">Honorer Sekolah</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">No. WhatsApp / HP</label>
+            <input type="text" id="guru-kontak" placeholder="Contoh: 0812-3456-7890" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white">
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-200 flex justify-end gap-2">
+          <button type="button" onclick="app.closeAddTeacherModal()" class="px-4 py-2 rounded-xl border text-xs font-medium">Batal</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold transition-colors">Simpan Guru & GTK</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: CUSTOM GLASS CONFIRM / ALERT ================= -->
+  <div id="modal-custom-dialog" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4 overflow-y-auto no-print">
+    <div class="glass-modal max-w-sm w-full p-6 space-y-4 text-center">
+      <div id="dialog-icon-wrapper" class="w-12 h-12 rounded-full mx-auto flex items-center justify-center bg-blue-100 text-blue-600 mb-2">
+        <svg id="dialog-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+      </div>
+      <div>
+        <h4 id="dialog-title" class="font-bold text-base text-slate-900 mb-1">Konfirmasi</h4>
+        <p id="dialog-message" class="text-xs text-slate-600 leading-relaxed">Apakah Anda yakin ingin melanjutkan tindakan ini?</p>
+      </div>
+      <div class="flex items-center justify-center gap-2 pt-2">
+        <button id="dialog-btn-cancel" onclick="app.closeCustomDialog(false)" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors">Batal</button>
+        <button id="dialog-btn-confirm" onclick="app.closeCustomDialog(true)" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors">Lanjutkan</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ================= MODAL: KOP SEKOLAH & AI ================= -->
   <div id="modal-settings" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4 overflow-y-auto no-print">
