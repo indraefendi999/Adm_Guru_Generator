@@ -406,6 +406,7 @@ const app = {
     this.renderMapelQuickChips();
     this.updateP5RecommendationBadge();
     this.updateAIStatusDisplay();
+    this.updateModulAIStatusDisplay();
     this.checkAuthSession();
   },
 
@@ -545,7 +546,10 @@ const app = {
     if (paneId === 'guru') this.renderTeacherTable();
     if (paneId === 'absensi') this.renderAttendanceSheet();
     if (paneId === 'jurnal') this.renderJournalTable();
-    if (paneId === 'modul') this.renderModulPreview();
+    if (paneId === 'modul') {
+      this.renderModulPreview();
+      this.updateModulAIStatusDisplay();
+    }
     if (paneId === 'soal') {
       this.renderStudio();
       this.updateAIStatusDisplay();
@@ -1948,13 +1952,28 @@ Materi KBM: ${materi}
 Presensi: ${hadir} hadir, ${sakit} sakit.
 Berikan catatan efektivitas metode pembelajaran dan rencana tindak lanjut (remedial/pengayaan). Sertakan nada pedagogik resmi siap supervisi.`;
 
-        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        const legacy = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.5-flash'];
+        const aiModel = state.settings?.aiModel && !legacy.includes(state.settings.aiModel) && state.settings.aiModel !== 'offline'
+          ? state.settings.aiModel
+          : 'gemini-3.1-flash-lite';
+
+        let resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${aiModel}:generateContent?key=${apiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ parts: [{ text: promptText }] }]
           })
         });
+
+        if (!resp.ok && aiModel !== 'gemini-3.1-flash-lite') {
+          resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: promptText }] }]
+            })
+          });
+        }
         const data = await resp.json();
         if (data.candidates && data.candidates[0].content.parts[0].text) {
           reflectionBox.value = data.candidates[0].content.parts[0].text.trim();
@@ -2582,68 +2601,261 @@ Berikan catatan efektivitas metode pembelajaran dan rencana tindak lanjut (remed
     if (doSwitch) this.notify('Contoh Modul Ajar Berdiferensiasi & Rubrik Sikap dimuat.');
   },
 
+  setModulTime(timeStr) {
+    const el = document.getElementById('modul-time');
+    if (el) el.value = timeStr;
+    this.notify(`Alokasi waktu diatur: ${timeStr}`);
+  },
+
+  setModulTopic(topicStr) {
+    const el = document.getElementById('modul-topic');
+    if (el) el.value = topicStr;
+    this.notify(`Topik materi dipilih: ${topicStr}`);
+  },
+
+  handleModulFaseChange(faseVal) {
+    const faseEl = document.getElementById('modul-fase');
+    if (faseEl && faseVal && faseEl.value !== faseVal) {
+      faseEl.value = faseVal;
+    }
+    const timeEl = document.getElementById('modul-time');
+    if (!timeEl) return;
+    if (faseVal.includes('Fase A') || faseVal.includes('Fase B') || faseVal.includes('Fase C')) {
+      timeEl.value = '2 x 35 Menit (1 Pertemuan)';
+    } else if (faseVal.includes('Fase D')) {
+      timeEl.value = '2 x 40 Menit (1 Pertemuan)';
+    } else if (faseVal.includes('Fase E') || faseVal.includes('Fase F')) {
+      timeEl.value = '2 x 45 Menit (1 Pertemuan)';
+    }
+  },
+
+  updateModulAIStatusDisplay() {
+    const badge = document.getElementById('modul-ai-badge');
+    if (!badge) return;
+    const apiKey = state.settings?.apiKey;
+    const legacyModels = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.5-flash'];
+    const model = legacyModels.includes(state.settings?.aiModel) ? 'gemini-3.1-flash-lite' : (state.settings?.aiModel || 'gemini-3.1-flash-lite');
+    if (apiKey && apiKey.trim() !== '' && model !== 'offline') {
+      badge.className = 'text-xs font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-lg flex items-center gap-1.5 shadow-2xs';
+      badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span>🟢 AI Gemini Active (${model})</span>`;
+    } else {
+      badge.className = 'text-xs font-semibold px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-300 rounded-lg flex items-center gap-1.5 shadow-2xs';
+      badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span><span>🟡 Mode Standar Offline</span>`;
+    }
+  },
+
   async generateModulAjar() {
-    const subject = document.getElementById('modul-subject').value.trim() || 'Matematika';
-    const fase = document.getElementById('modul-fase').value.trim() || 'Fase D';
-    const model = document.getElementById('modul-model').value;
-    const time = document.getElementById('modul-time').value.trim() || '2 x 40 Menit';
-    const topic = document.getElementById('modul-topic').value.trim();
+    const subject = document.getElementById('modul-subject')?.value.trim() || 'Matematika';
+    const fase = document.getElementById('modul-fase')?.value || 'Fase D (Kelas 7-9 SMP)';
+    const model = document.getElementById('modul-model')?.value || 'Problem Based Learning (PBL)';
+    const time = document.getElementById('modul-time')?.value.trim() || '2 x 40 Menit (1 Pertemuan)';
+    const topic = document.getElementById('modul-topic')?.value.trim() || 'Operasi hitung bilangan bulat dan aljabar sederhana';
 
     if (!topic) {
       alert('Mohon masukkan Topik Materi terlebih dahulu.');
       return;
     }
 
-    const overlay = document.getElementById('loading-overlay');
-    overlay.classList.remove('hidden');
+    const apiKey = state.settings.apiKey;
+    const legacyModels = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.5-flash'];
+    const aiModel = legacyModels.includes(state.settings.aiModel) ? 'gemini-3.1-flash-lite' : (state.settings.aiModel || 'gemini-3.1-flash-lite');
 
-    setTimeout(() => {
-      state.currentModul = {
-        id: 'MODUL-' + new Date().getFullYear() + String(new Date().getMonth()+1).padStart(2, '0') + '-002',
-        title: `Modul Ajar ${subject} - ${topic.slice(0, 35)}...`,
-        subject: subject,
-        fase: fase,
-        model: model,
-        time: time,
-        components: {
-          identitas: {
-            penyusun: state.settings.teacherName || 'Ibu Ratna Sari, S.Pd.',
-            instansi: state.settings.schoolName || 'SMP Negeri Contoh Teladan',
-            jenjang: 'SMP',
-            faseKelas: fase,
-            alokasiWaktu: time
-          },
-          profilPancasila: ['Bernalar Kritis', 'Mandiri', 'Bergotong Royong'],
-          saranaPrasarana: 'Buku Siswa, LKPD terstruktur, media visual interaktif.',
-          tujuanPembelajaran: [
-            'Peserta didik dapat memahami konsep dasar mengenai ' + topic + ' secara komprehensif.',
-            'Peserta didik mampu mengaplikasikan pemahaman konsep dalam memecahkan masalah nyata.'
-          ],
-          pemahamanBermakna: 'Materi ' + topic + ' bermanfaat dalam pemecahan masalah logis sehari-hari.',
-          pertanyaanPemantik: ['Mengapa penting memahami ' + topic + '?'],
-          langkahKegiatan: [
-            {
-              pertemuan: 1,
-              pendahuluan: '1. Pembukaan dan apersepsi materi.\n2. Motivasi belajar.',
-              inti: '1. Eksplorasi konsep dan penugasan LKPD.\n2. Diskusi kelompok terarah.\n3. Presentasi hasil.',
-              penutup: '1. Rangkuman materi.\n2. Doa penutup.'
-            }
-          ],
-          lkpd: {
-            judul: 'LEMBAR KERJA PESERTA DIDIK (LKPD) - ' + topic.slice(0, 40),
-            petunjuk: '1. Berdoa sebelum mengerjakan.\n2. Kerjakan bersama teman sekelompokmu.',
-            soalLKPD: [
-              '1. Uraikan pengertian mendasar terkait ' + topic + '!',
-              '2. Berikan 2 contoh konkret penerapan materi ini di lingkungan sekitar!'
-            ]
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) overlay.classList.remove('hidden');
+    this.notify('✨ AI Gemini sedang merumuskan Modul Ajar Berdiferensiasi & LKPD...');
+
+    let parsedComponents = null;
+    let generatedViaAI = false;
+
+    if (apiKey && apiKey.trim() !== '' && aiModel !== 'offline') {
+      try {
+        const prompt = `Anda adalah Tim Pengembang Kurikulum Merdeka Kemdikbudristek (BSKAP). Rumuskan 1 Modul Ajar lengkap dengan RPP Berdiferensiasi dan LKPD untuk:
+- Mata Pelajaran: ${subject}
+- Fase & Jenjang: ${fase}
+- Alokasi Waktu: ${time}
+- Model Pembelajaran: ${model}
+- Topik / Materi: "${topic}"
+
+Format balasan HANYA berupa JSON murni tanpa markdown formatting pembungkus seperti ini:
+{
+  "profilPancasila": ["Bernalar Kritis", "Mandiri", "Bergotong Royong"],
+  "saranaPrasarana": "Buku Siswa, proyektor, LKPD terstruktur, media kontekstual nyata.",
+  "tujuanPembelajaran": [
+    "Peserta didik dapat memahami konsep dasar mengenai ${topic} secara mendalam.",
+    "Peserta didik mampu mengaplikasikan pemahaman konsep dalam memecahkan masalah kontekstual nyata."
+  ],
+  "pemahamanBermakna": "Materi ${topic} bermanfaat dalam penalaran logis pemecahan masalah sehari-hari.",
+  "iceBreaking": {
+    "judul": "Tebak Kasus Kontekstual",
+    "durasi": "5 Menit",
+    "deskripsi": "Aktivitas pemanasan interaktif membangkitkan motivasi siswa terhadap konsep ${topic}."
+  },
+  "pertanyaanPemantik": [
+    "Mengapa penting mempelajari ${topic} dalam kehidupan sehari-hari?",
+    "Bagaimana kita memanfaatkan konsep ini untuk memecahkan masalah di sekitar kita?"
+  ],
+  "diferensiasi": {
+    "visual": { "target": "Kelompok murid bergaya belajar visual", "aktivitas": "Mengamati bagan konsep, infografis, dan diagram alur materi." },
+    "auditori": { "target": "Kelompok murid bergaya belajar auditori", "aktivitas": "Mendengarkan paparan penjelasan guru dan diskusi tanya jawab terarah." },
+    "kinestetik": { "target": "Kelompok murid bergaya belajar kinestetik", "aktivitas": "Praktik langsung manipulasi objek dan simulasi nyata." }
+  },
+  "langkahKegiatan": [
+    {
+      "pertemuan": 1,
+      "pendahuluan": "1. Guru menyapa, memimpin doa, dan presensi kelas.\\n2. Apersepsi materi sebelumnya dan menyampaikan TP.\\n3. Pemanasan ice breaking 5 menit.",
+      "inti": "1. Orientasi peserta didik pada masalah nyata.\\n2. Pengorganisasian kelompok belajar berdiferensiasi.\\n3. Penyelidikan terbimbing dan pengerjaan LKPD.\\n4. Presentasi dan diskusi hasil karya.\\n5. Analisis dan penguatan konsep oleh guru.",
+      "penutup": "1. Kesimpulan pembelajaran bersama murid.\\n2. Refleksi pembelajaran dan tindak lanjut.\\n3. Doa penutup dan salam."
+    }
+  ],
+  "rubrikObservasi": [
+    {
+      "dimensi": "Bernalar Kritis",
+      "bb": "Belum mampu menganalisis masalah secara logis.",
+      "mb": "Mampu mengidentifikasi sebagian masalah.",
+      "bsh": "Mampu merumuskan argumen logis secara mandiri.",
+      "sb": "Mampu mengkritisi dan menemukan alternatif solusi inovatif."
+    },
+    {
+      "dimensi": "Bergotong Royong",
+      "bb": "Cenderung pasif dalam kerja kelompok.",
+      "mb": "Mulai terlibat membantu tugas kelompok.",
+      "bsh": "Aktif bekerja sama dan berbagi peran dengan baik.",
+      "sb": "Inisiatif tinggi memimpin dan membantu teman yang kesulitan."
+    }
+  ],
+  "lkpd": {
+    "judul": "LEMBAR KERJA PESERTA DIDIK (LKPD) - ${subject.toUpperCase()}",
+    "petunjuk": "1. Tuliskan identitas kelompok.\\n2. Diskusikan permasalahan secara bersama.\\n3. Tanyakan kepada guru jika menemui kendala.",
+    "soalLKPD": [
+      "1. Berdasarkan uraian di atas, analisislah 2 konsep penting yang ditemukan!",
+      "2. Rumuskan langkah pemecahan masalah secara runtut dan sistematis!",
+      "3. Simpulkan pembelajaran yang diperoleh dan kaitkan dengan kehidupan nyata!"
+    ]
+  }
+}`;
+
+        let resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${aiModel}:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.7 }
+          })
+        });
+
+        if (!resp.ok && aiModel !== 'gemini-3.1-flash-lite') {
+          resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { temperature: 0.7 }
+            })
+          });
+        }
+
+        if (resp.ok) {
+          const data = await resp.json();
+          const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            parsedComponents = JSON.parse(jsonMatch[0]);
+            generatedViaAI = true;
           }
         }
+      } catch (err) {
+        console.warn('Gemini Modul Ajar API call failed, using adaptive fallback', err);
+      }
+    }
+
+    if (!parsedComponents) {
+      // Smart adaptive fallback
+      parsedComponents = {
+        profilPancasila: ['Bernalar Kritis', 'Mandiri', 'Bergotong Royong'],
+        saranaPrasarana: 'Buku Siswa, proyektor LCD, LKPD terstruktur, media visual interaktif.',
+        tujuanPembelajaran: [
+          `Peserta didik dapat memahami konsep dasar mengenai ${topic} secara komprehensif.`,
+          `Peserta didik mampu mengaplikasikan pemahaman materi ${topic} dalam memecahkan masalah kontekstual.`
+        ],
+        pemahamanBermakna: `Pemahaman tentang ${topic} esensial untuk memecahkan permasalahan nyata sehari-hari secara logis dan kritis.`,
+        iceBreaking: {
+          judul: 'Tebak Kata & Logika Cepat',
+          durasi: '5 Menit',
+          deskripsi: 'Aktivitas pemanasan interaktif mengaitkan pengetahuan awal murid dengan konsep materi hari ini.'
+        },
+        pertanyaanPemantik: [
+          `Mengapa kita perlu mempelajari konsep ${topic} dalam kehidupan sehari-hari?`,
+          `Bagaimana cara menyelesaikan masalah nyata dengan menerapkan prinsip materi ini?`
+        ],
+        diferensiasi: {
+          visual: { target: 'Siswa bergaya belajar visual', aktivitas: `Mengamati bagan konsep dan infografis terkait ${topic}.` },
+          auditori: { target: 'Siswa bergaya belajar auditori', aktivitas: `Mendengarkan penjelasan materi dan berdiskusi kelompok terarah.` },
+          kinestetik: { target: 'Siswa bergaya belajar kinestetik', aktivitas: `Praktik langsung simulasi dan pengerjaan lembar kerja berorientasi tindakan.` }
+        },
+        langkahKegiatan: [
+          {
+            pertemuan: 1,
+            pendahuluan: '1. Guru membuka KBM, menyapa murid, berdoa, dan memeriksa kehadiran.\\n2. Apersepsi materi sebelumnya dan menyampaikan TP.\\n3. Pemanasan ice breaking 5 menit.',
+            inti: `1. Orientasi murid pada masalah nyata terkait ${topic}.\\n2. Pengelompokan murid sesuai modalitas belajar (diferensiasi proses).\\n3. Diskusi kelompok dan pengerjaan LKPD terstruktur.\\n4. Presentasi hasil karya kelompok.\\n5. Evaluasi dan penguatan konsep oleh guru.`,
+            penutup: '1. Rangkuman bersama murid terkait poin-poin utama.\\n2. Refleksi pembelajaran dan tindak lanjut.\\n3. Doa penutup dan salam.'
+          }
+        ],
+        rubrikObservasi: [
+          {
+            dimensi: 'Bernalar Kritis',
+            bb: 'Belum mampu menyampaikan argumen logis terkait materi.',
+            mb: 'Mulai mampu menyampaikan pendapat dengan bantuan teman/guru.',
+            bsh: 'Mampu merumuskan pemecahan masalah kontekstual secara mandiri.',
+            sb: 'Sangat kritis dan mampu memberikan alternatif solusi kreatif.'
+          },
+          {
+            dimensi: 'Bergotong Royong',
+            bb: 'Pasif dan enggan berkontribusi dalam diskusi kelompok.',
+            mb: 'Mulai terlibat dalam pembagian tugas kelompok.',
+            bsh: 'Bekerja sama secara aktif dan menghargai pendapat anggota tim.',
+            sb: 'Inisiatif tinggi memimpin dan membantu teman yang mengalami kendala.'
+          }
+        ],
+        lkpd: {
+          judul: `LEMBAR KERJA PESERTA DIDIK (LKPD) - ${subject.toUpperCase()}`,
+          petunjuk: '1. Berdoalah sebelum memulai pengerjaan.\\n2. Diskusikan setiap pertanyaan bersama teman sekelompokmu.\\n3. Tuliskan kesimpulan hasil diskusi dengan jelas.',
+          soalLKPD: [
+            `1. Berdasarkan pengamatan materi ${topic}, identifikasilah 2 konsep penting yang Anda temukan!`,
+            `2. Jelaskan bagaimana konsep tersebut dapat diterapkan untuk menyelesaikan masalah di lingkungan sekitar!`,
+            `3. Buatlah kesimpulan singkat hasil diskusi kelompok dan siapkan untuk dipresentasikan!`
+          ]
+        }
       };
-      localStorage.setItem(KEYS.CURRENT_MODUL, JSON.stringify(state.currentModul));
-      overlay.classList.add('hidden');
-      this.renderModulPreview();
-      this.notify('✨ Modul Ajar Kurikulum Merdeka berhasil dirumuskan.');
-    }, 700);
+    }
+
+    state.currentModul = {
+      id: 'MODUL-' + new Date().getFullYear() + String(new Date().getMonth()+1).padStart(2, '0') + '-' + String(Math.floor(Math.random() * 900) + 100),
+      title: `Modul Ajar ${subject} - ${topic.slice(0, 35)}...`,
+      subject: subject,
+      fase: fase,
+      model: model,
+      time: time,
+      components: {
+        identitas: {
+          penyusun: state.settings.teacherName || 'Ibu Ratna Sari, S.Pd.',
+          instansi: state.settings.schoolName || 'Satuan Pendidikan',
+          jenjang: state.settings.stage || 'SMP',
+          faseKelas: fase,
+          alokasiWaktu: time
+        },
+        ...parsedComponents
+      }
+    };
+
+    localStorage.setItem(KEYS.CURRENT_MODUL, JSON.stringify(state.currentModul));
+    if (overlay) overlay.classList.add('hidden');
+    this.renderModulPreview();
+
+    if (generatedViaAI) {
+      this.notify(`🎉 Modul Ajar & LKPD berhasil dirumuskan secara mendalam oleh AI Gemini!`);
+    } else {
+      this.notify(`✨ Modul Ajar Kurikulum Merdeka berhasil dirumuskan.`);
+    }
   },
 
   renderModulPreview() {
@@ -3051,6 +3263,15 @@ Berikan catatan efektivitas metode pembelajaran dan rencana tindak lanjut (remed
     this.handleClassStageChange(stage);
     this.renderMapelQuickChips();
     this.updateP5RecommendationBadge();
+
+    // Auto-sync Modul Ajar Fase to current Stage
+    const modulFase = document.getElementById('modul-fase');
+    if (modulFase) {
+      const defaultFase = stage === 'SD' ? 'Fase B' : (stage === 'SMA' || stage === 'SMK' ? 'Fase E' : 'Fase D');
+      modulFase.value = defaultFase;
+      this.handleModulFaseChange(defaultFase);
+    }
+
     this.notify(`Jenjang pendidikan disesuaikan ke: ${stage}`);
   },
 
@@ -3106,6 +3327,7 @@ Berikan catatan efektivitas metode pembelajaran dan rencana tindak lanjut (remed
     this.renderMapelQuickChips();
     this.updateP5RecommendationBadge();
     this.updateAIStatusDisplay();
+    this.updateModulAIStatusDisplay();
     this.checkAuthSession();
   },
 
@@ -5235,7 +5457,12 @@ Output WAJIB berupa JSON murni tanpa markdown, tanpa backtick, format:
 `;
 
     try {
-      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      const legacy = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.5-flash'];
+      const aiModel = state.settings?.aiModel && !legacy.includes(state.settings.aiModel) && state.settings.aiModel !== 'offline'
+        ? state.settings.aiModel
+        : 'gemini-3.1-flash-lite';
+
+      let resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${aiModel}:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -5243,6 +5470,17 @@ Output WAJIB berupa JSON murni tanpa markdown, tanpa backtick, format:
           generationConfig: { temperature: 0.7, responseMimeType: 'application/json' }
         })
       });
+
+      if (!resp.ok && aiModel !== 'gemini-3.1-flash-lite') {
+        resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: promptText }] }],
+            generationConfig: { temperature: 0.7, responseMimeType: 'application/json' }
+          })
+        });
+      }
 
       const data = await resp.json();
       const raw = data.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -5645,7 +5883,7 @@ Output WAJIB berupa JSON murni tanpa markdown, tanpa backtick, format:
       teacherName: document.getElementById('set-teacher-name').value.trim() || 'Ibu Ratna Sari, S.Pd.',
       teacherRole: document.getElementById('set-teacher-role').value.trim() || 'Guru Matematika & Wali Kelas VII-A',
       apiKey: document.getElementById('set-api-key').value.trim(),
-      aiModel: document.getElementById('set-ai-model')?.value || 'gemini-1.5-flash',
+      aiModel: document.getElementById('set-ai-model')?.value || 'gemini-3.1-flash-lite',
       schoolParent: document.getElementById('set-school-parent').value.trim(),
       schoolName: document.getElementById('set-school-name').value.trim(),
       schoolAddress: document.getElementById('set-school-address').value.trim(),
@@ -5658,6 +5896,7 @@ Output WAJIB berupa JSON murni tanpa markdown, tanpa backtick, format:
     this.updateKopDisplay();
     this.updateTopbarDisplay();
     this.updateAIStatusDisplay();
+    this.updateModulAIStatusDisplay();
     this.closeSettingsModal();
     this.renderMapelQuickChips();
     this.updateP5RecommendationBadge();
@@ -5678,7 +5917,7 @@ Output WAJIB berupa JSON murni tanpa markdown, tanpa backtick, format:
           headmaster_name: state.settings.principalName || '',
           headmaster_nip: state.settings.principalNip || '',
           gemini_api_key: state.settings.apiKey || '',
-          ai_model: state.settings.aiModel || 'gemini-1.5-flash',
+          ai_model: state.settings.aiModel || 'gemini-3.1-flash-lite',
           show_stamp: state.settings.showStamp !== false,
           updated_at: new Date().toISOString()
         })
@@ -5713,7 +5952,7 @@ Output WAJIB berupa JSON murni tanpa markdown, tanpa backtick, format:
   // ---------- AI CONFIGURATION & DIAGNOSTICS (FITUR OPTION A) ----------
   updateAIStatusDisplay() {
     const apiKey = state.settings?.apiKey;
-    const model = state.settings?.aiModel || 'gemini-1.5-flash';
+    const model = state.settings?.aiModel || 'gemini-3.1-flash-lite';
     const card = document.getElementById('gen-ai-status-card');
     const dot = document.getElementById('gen-ai-status-dot');
     const title = document.getElementById('gen-ai-status-title');
