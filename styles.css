@@ -1,0 +1,440 @@
+/* styles.css - Soft Neo-Brutalism Clean ("Warm Neo-Academic")
+   (c) 2026 GuruSuite AI by ZettBOT
+*/
+
+/* ================= WARM NEO-ACADEMIC CANVAS ================= */
+body {
+  background-color: #faf9f5;
+  background-image: 
+    radial-gradient(#e2dfd2 0.75px, transparent 0.75px),
+    radial-gradient(#e2dfd2 0.75px, #faf9f5 0.75px);
+  background-size: 30px 30px;
+  background-position: 0 0, 15px 15px;
+  background-attachment: fixed;
+  min-height: 100vh;
+  color: #0f172a;
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+}
+
+/* ================= TOPBAR (SOFT NEO-BRUTALIST HEADER) ================= */
+.glass-topbar {
+  background: #ffffff;
+  border-bottom: 2px solid #0f172a;
+  box-shadow: 0 3px 0px #0f172a;
+  position: relative;
+  z-index: 40;
+}
+
+/* ================= SURFACES & PANELS (HARD CONTOURS & SHADOWS) ================= */
+.glass-panel {
+  background: #ffffff;
+  border: 2px solid #0f172a;
+  box-shadow: 3px 3px 0px #0f172a;
+  border-radius: 1rem;
+}
+
+.glass-panel-subtle {
+  background: #fdfdfc;
+  border: 2px solid #0f172a;
+  box-shadow: 2px 2px 0px #0f172a;
+  border-radius: 0.875rem;
+}
+
+.glass-sidebar {
+  background: #ffffff;
+  border-right: 2px solid #0f172a;
+}
+
+.glass-modal {
+  background: #ffffff;
+  border: 2.5px solid #0f172a;
+  box-shadow: 6px 6px 0px #0f172a;
+  border-radius: 1.25rem;
+}
+
+/* ================= BENTO GRID UI (NEO-TACTILE TILES) ================= */
+.bento-card {
+  background: #ffffff;
+  border: 2px solid #0f172a;
+  border-radius: 1rem;
+  box-shadow: 3px 3px 0px #0f172a;
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bento-card:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0px #0f172a;
+}
+
+.bento-card:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px #0f172a;
+}
+
+/* ================= NEO TACTILE BUTTONS ================= */
+.neo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  font-weight: 700;
+  border: 2px solid #0f172a;
+  border-radius: 0.75rem;
+  box-shadow: 3px 3px 0px #0f172a;
+  transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  user-select: none;
+}
+
+.neo-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px #0f172a;
+}
+
+.neo-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px #0f172a;
+}
+
+.neo-btn-primary {
+  background: #fde047;
+  color: #0f172a;
+}
+
+.neo-btn-secondary {
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.neo-btn-ai {
+  background: #e9d5ff;
+  color: #0f172a;
+}
+
+.neo-btn-dark {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+/* ================= SIDEBAR MENU ITEMS (NEO TACTILE TABS) ================= */
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5625rem 0.75rem;
+  border-radius: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #1e293b;
+  transition: all 0.12s ease;
+  border: 1.5px solid transparent;
+}
+
+.sidebar-link:hover {
+  background: #fef08a;
+  color: #0f172a;
+  border-color: #0f172a;
+  box-shadow: 2px 2px 0px #0f172a;
+  transform: translate(-1px, -1px);
+}
+
+.sidebar-link svg {
+  color: #334155 !important;
+  transition: color 0.15s ease;
+}
+
+.sidebar-link:hover svg {
+  color: #0f172a !important;
+}
+
+.sidebar-link.active-blue {
+  background: #fde047;
+  color: #0f172a !important;
+  font-weight: 800;
+  border: 2px solid #0f172a;
+  box-shadow: 3px 3px 0px #0f172a;
+  transform: translate(-1px, -1px);
+}
+
+.sidebar-link.active-blue svg {
+  color: #0f172a !important;
+}
+
+.sidebar-link.active-emerald {
+  background: #bbf7d0;
+  color: #0f172a !important;
+  font-weight: 800;
+  border: 2px solid #0f172a;
+  box-shadow: 3px 3px 0px #0f172a;
+  transform: translate(-1px, -1px);
+}
+
+.sidebar-link.active-emerald svg {
+  color: #0f172a !important;
+}
+
+.sidebar-link.dashed-pill {
+  border: 1.5px solid transparent;
+  background: transparent;
+}
+
+.sidebar-link.dashed-pill:hover {
+  background: #fef08a;
+  border-color: #0f172a;
+  box-shadow: 2px 2px 0px #0f172a;
+  transform: translate(-1px, -1px);
+}
+
+.sidebar-link.active-dashed {
+  background: #e9d5ff;
+  color: #0f172a !important;
+  font-weight: 800;
+  border: 2px solid #0f172a;
+  box-shadow: 3px 3px 0px #0f172a;
+  transform: translate(-1px, -1px);
+}
+
+.sidebar-link.active-dashed svg {
+  color: #0f172a !important;
+}
+
+/* Section Header Typography */
+.sidebar-section-title {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+  padding: 0 0.75rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0.375rem;
+}
+
+/* ================= P5 RUBRIC BADGES & CONTROLS ================= */
+.badge-p5-bb {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1.5px solid #0f172a;
+  font-weight: 800;
+  box-shadow: 1.5px 1.5px 0px #0f172a;
+}
+
+.badge-p5-mb {
+  background-color: #fef08a;
+  color: #854d0e;
+  border: 1.5px solid #0f172a;
+  font-weight: 800;
+  box-shadow: 1.5px 1.5px 0px #0f172a;
+}
+
+.badge-p5-bsh {
+  background-color: #bae6fd;
+  color: #0369a1;
+  border: 1.5px solid #0f172a;
+  font-weight: 800;
+  box-shadow: 1.5px 1.5px 0px #0f172a;
+}
+
+.badge-p5-sb {
+  background-color: #bbf7d0;
+  color: #15803d;
+  border: 1.5px solid #0f172a;
+  font-weight: 800;
+  box-shadow: 1.5px 1.5px 0px #0f172a;
+}
+
+.p5-btn-pill {
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  border: 1.5px solid #0f172a;
+  background: #ffffff;
+  color: #334155;
+  box-shadow: 1.5px 1.5px 0px #0f172a;
+}
+
+.p5-btn-pill:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 2.5px 2.5px 0px #0f172a;
+}
+
+.p5-btn-pill.selected-bb {
+  background: #fee2e2;
+  color: #991b1b;
+  font-weight: 800;
+}
+
+.p5-btn-pill.selected-mb {
+  background: #fef08a;
+  color: #854d0e;
+  font-weight: 800;
+}
+
+.p5-btn-pill.selected-bsh {
+  background: #bae6fd;
+  color: #0369a1;
+  font-weight: 800;
+}
+
+.p5-btn-pill.selected-sb {
+  background: #bbf7d0;
+  color: #15803d;
+  font-weight: 800;
+}
+
+/* ================= INTERACTION & MICRO-ANIMATIONS ================= */
+.hover-lift {
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.hover-lift:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px #0f172a;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #faf9f5;
+  border-left: 1px solid #0f172a;
+}
+::-webkit-scrollbar-thumb {
+  background: #0f172a;
+  border-radius: 0px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Table matrix styling */
+.matrix-input {
+  width: 52px;
+  padding: 4px;
+  text-align: center;
+  border: 1.5px solid #0f172a;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #ffffff;
+  box-shadow: 1px 1px 0px #0f172a;
+}
+.matrix-input:focus {
+  outline: none;
+  background: #fffbeb;
+  box-shadow: 2px 2px 0px #0f172a;
+}
+
+/* ================= GTK STATUS BADGES ================= */
+.badge-gtk-pns {
+  background-color: #bbf7d0;
+  color: #14532d;
+  border: 1.5px solid #0f172a;
+  font-weight: 800;
+  box-shadow: 1.5px 1.5px 0px #0f172a;
+}
+.badge-gtk-pppk {
+  background-color: #bae6fd;
+  color: #0c4a6e;
+  border: 1.5px solid #0f172a;
+  font-weight: 800;
+  box-shadow: 1.5px 1.5px 0px #0f172a;
+}
+.badge-gtk-gtt {
+  background-color: #fef08a;
+  color: #713f12;
+  border: 1.5px solid #0f172a;
+  font-weight: 800;
+  box-shadow: 1.5px 1.5px 0px #0f172a;
+}
+.badge-gtk-honorer {
+  background-color: #e9d5ff;
+  color: #581c87;
+  border: 1.5px solid #0f172a;
+  font-weight: 800;
+  box-shadow: 1.5px 1.5px 0px #0f172a;
+}
+
+/* ================= NOTIFICATION CENTER POPUP CARDS ================= */
+.notif-card {
+  background: #ffffff;
+  border: 2px solid #0f172a;
+  border-radius: 0.875rem;
+  padding: 0.875rem 1rem;
+  transition: all 0.12s ease;
+  box-shadow: 2.5px 2.5px 0px #0f172a;
+}
+.notif-card:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px #0f172a;
+}
+.notif-card.card-warning {
+  border-left: 6px solid #f59e0b;
+}
+.notif-card.card-danger {
+  border-left: 6px solid #ef4444;
+}
+.notif-card.card-info {
+  border-left: 6px solid #3b82f6;
+}
+.notif-card.card-neutral {
+  border-left: 6px solid #10b981;
+}
+
+/* ================= PRINT OPTIMIZATION (A4 & F4 STANDARDS) ================= */
+@media print {
+  body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+    font-family: 'Times New Roman', Times, serif !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .paper-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: transparent !important;
+  }
+
+  .page-break-before {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
+
+  .avoid-break-inside {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  th, td {
+    border: 1px solid #000000 !important;
+    padding: 4px 6px !important;
+    color: #000000 !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 1.8cm 1.5cm 1.8cm 1.5cm;
+  }
+}
