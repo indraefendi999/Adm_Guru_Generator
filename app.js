@@ -212,7 +212,7 @@ const DEFAULT_P5_ASSESSMENTS = {};
 
 const DEFAULT_SETTINGS = {
   apiKey: '',
-  aiModel: 'gemini-1.5-flash',
+  aiModel: 'gemini-3.1-flash-lite',
   leftLogo: '',
   rightLogo: '',
   showStamp: true,
@@ -581,7 +581,14 @@ const app = {
   loadStateFromStorage() {
     try {
       const s = localStorage.getItem(KEYS.SETTINGS);
-      if (s) state.settings = { ...DEFAULT_SETTINGS, ...JSON.parse(s) };
+      if (s) {
+        state.settings = { ...DEFAULT_SETTINGS, ...JSON.parse(s) };
+        const legacyModels = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.5-flash'];
+        if (legacyModels.includes(state.settings.aiModel)) {
+          state.settings.aiModel = 'gemini-3.1-flash-lite';
+          localStorage.setItem(KEYS.SETTINGS, JSON.stringify(state.settings));
+        }
+      }
 
       const std = localStorage.getItem(KEYS.STUDENTS);
       if (std) {
@@ -2821,7 +2828,8 @@ Berikan catatan efektivitas metode pembelajaran dan rencana tindak lanjut (remed
 
     const letters = ['A', 'B', 'C', 'D', 'E'].slice(0, optCount);
     const apiKey = state.settings.apiKey;
-    const model = state.settings.aiModel || 'gemini-1.5-flash';
+    const legacyModels = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.5-flash'];
+    const model = legacyModels.includes(state.settings.aiModel) ? 'gemini-3.1-flash-lite' : (state.settings.aiModel || 'gemini-3.1-flash-lite');
 
     if (!apiKey || apiKey.trim() === '' || model === 'offline') {
       const proceed = confirm('💡 Info Kunci AI Google Gemini:\n\nGoogle Gemini API Key belum terpasang atau model diatur ke offline.\n\nSistem akan merumuskan paket soal secara otomatis menggunakan "Kurasi Template Cerdas Kurikulum Merdeka Lokal".\n\n• Klik OK untuk melanjutkan perumusan soal.\n• Klik BATAL jika ingin memasang API Key sekarang di menu Pengaturan.');
@@ -2850,7 +2858,7 @@ Berikan catatan efektivitas metode pembelajaran dan rencana tindak lanjut (remed
     "scoreWeight": 1
   }
 ]`;
-        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+        let resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -2858,6 +2866,20 @@ Berikan catatan efektivitas metode pembelajaran dan rencana tindak lanjut (remed
             generationConfig: { temperature: 0.7 }
           })
         });
+
+        // Failover if chosen model is 404/503
+        if (!resp.ok && model !== 'gemini-3.1-flash-lite') {
+          console.warn(`Model ${model} returned HTTP ${resp.status}, failing over to gemini-3.1-flash-lite`);
+          resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { temperature: 0.7 }
+            })
+          });
+        }
+
         if (resp.ok) {
           const data = await resp.json();
           const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
@@ -5601,7 +5623,8 @@ Output WAJIB berupa JSON murni tanpa markdown, tanpa backtick, format:
     document.getElementById('set-teacher-role').value = s.teacherRole || '';
     document.getElementById('set-api-key').value = s.apiKey || '';
     const modelSelect = document.getElementById('set-ai-model');
-    if (modelSelect) modelSelect.value = s.aiModel || 'gemini-1.5-flash';
+    const legacyModels = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.5-flash'];
+    if (modelSelect) modelSelect.value = (legacyModels.includes(s.aiModel) ? 'gemini-3.1-flash-lite' : (s.aiModel || 'gemini-3.1-flash-lite'));
     document.getElementById('set-school-parent').value = s.schoolParent || '';
     document.getElementById('set-school-name').value = s.schoolName || '';
     document.getElementById('set-school-address').value = s.schoolAddress || '';
@@ -5714,7 +5737,12 @@ Output WAJIB berupa JSON murni tanpa markdown, tanpa backtick, format:
     const modalKeyInput = document.getElementById('set-api-key');
     let keyToTest = (modalKeyInput && modalKeyInput.value.trim()) ? modalKeyInput.value.trim() : (state.settings?.apiKey || '');
     const modelSelect = document.getElementById('set-ai-model');
-    let modelToTest = (modelSelect && modelSelect.value) ? modelSelect.value : (state.settings?.aiModel || 'gemini-1.5-flash');
+    const legacyModels = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.5-flash'];
+    let modelToTest = (modelSelect && modelSelect.value) ? modelSelect.value : (state.settings?.aiModel || 'gemini-3.1-flash-lite');
+    if (legacyModels.includes(modelToTest)) {
+      modelToTest = 'gemini-3.1-flash-lite';
+      if (modelSelect) modelSelect.value = 'gemini-3.1-flash-lite';
+    }
 
     if (!keyToTest) {
       alert('⚠️ Kunci API Gemini belum diisi!\n\nSilakan masukkan Google Gemini API Key pada kolom pengaturan terlebih dahulu.');
@@ -5723,7 +5751,7 @@ Output WAJIB berupa JSON murni tanpa markdown, tanpa backtick, format:
     }
 
     if (modelToTest === 'offline') {
-      alert('ℹ️ Model saat ini diatur ke Mode Offline. Ubah model ke Gemini 1.5 Flash atau Gemini 2.0 Flash untuk menggunakan koneksi AI.');
+      alert('ℹ️ Model saat ini diatur ke Mode Offline. Ubah model ke Gemini 3.1 Flash Lite atau Gemini 3.5 Flash untuk menggunakan koneksi AI.');
       return false;
     }
 
@@ -5731,7 +5759,7 @@ Output WAJIB berupa JSON murni tanpa markdown, tanpa backtick, format:
     const startTime = Date.now();
 
     try {
-      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelToTest}:generateContent?key=${keyToTest}`, {
+      let resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelToTest}:generateContent?key=${keyToTest}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -5740,11 +5768,32 @@ Output WAJIB berupa JSON murni tanpa markdown, tanpa backtick, format:
         })
       });
 
+      let usedModel = modelToTest;
+
+      // Resilient failover if chosen model is 404 (deprecated) or 503 (busy)
+      if (!resp.ok && (resp.status === 404 || resp.status === 503) && modelToTest !== 'gemini-3.1-flash-lite') {
+        const failoverResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${keyToTest}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: 'ping' }] }],
+            generationConfig: { maxOutputTokens: 2 }
+          })
+        });
+        if (failoverResp.ok) {
+          resp = failoverResp;
+          usedModel = 'gemini-3.1-flash-lite';
+          if (modelSelect) modelSelect.value = 'gemini-3.1-flash-lite';
+          state.settings.aiModel = 'gemini-3.1-flash-lite';
+          localStorage.setItem(KEYS.SETTINGS, JSON.stringify(state.settings));
+        }
+      }
+
       const latency = Date.now() - startTime;
 
       if (resp.ok) {
-        this.notify(`✅ Koneksi AI Berhasil! Latensi: ${latency}ms (${modelToTest})`);
-        alert(`✅ KONEKSI AI BERHASIL!\n\n• Status: Terhubung Normal (HTTP 200)\n• Model: ${modelToTest}\n• Kecepatan Respon: ${latency} ms\n• Mesin Siap: Generator Asesmen & Pembuat Soal Otomatis Aktif.`);
+        this.notify(`✅ Koneksi AI Berhasil! Latensi: ${latency}ms (${usedModel})`);
+        alert(`✅ KONEKSI AI BERHASIL!\n\n• Status: Terhubung Normal (HTTP 200)\n• Model: ${usedModel}\n• Kecepatan Respon: ${latency} ms\n• Mesin Siap: Generator Asesmen & Pembuat Soal Otomatis Aktif.`);
         return true;
       } else {
         const errData = await resp.json().catch(() => ({}));
@@ -5752,8 +5801,12 @@ Output WAJIB berupa JSON murni tanpa markdown, tanpa backtick, format:
         let tip = 'Periksa apakah API Key Anda valid dan tidak memiliki batasan domain/referrer.';
         if (resp.status === 400 || resp.status === 403) {
           tip = 'API Key tidak valid atau izin API Gemini belum diaktifkan di Google AI Studio.';
+        } else if (resp.status === 404) {
+          tip = 'Model AI yang dipilih tidak tersedia. Sistem merekomendasikan "Gemini 3.1 Flash Lite".';
         } else if (resp.status === 429) {
           tip = 'Batas kuota gratis (Rate Limit) tercapai. Silakan coba kembali beberapa saat lagi.';
+        } else if (resp.status === 503) {
+          tip = 'Server Google sedang mengalami lonjakan trafik sesaat. Silakan klik Uji kembali dalam beberapa detik.';
         }
         alert(`❌ PENGUJIAN KONEKSI AI GAGAL (Kode ${resp.status})\n\nDetail: ${errMsg}\n\nSaran: ${tip}`);
         this.notify(`❌ Uji AI Gagal: HTTP ${resp.status}`);
@@ -5781,9 +5834,13 @@ Output WAJIB berupa JSON murni tanpa markdown, tanpa backtick, format:
           state.settings.apiKey = data.gemini_api_key;
           changed = true;
         }
-        if (data.ai_model && state.settings.aiModel !== data.ai_model) {
-          state.settings.aiModel = data.ai_model;
-          changed = true;
+        if (data.ai_model) {
+          const legacy = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.5-flash'];
+          const cloudModel = legacy.includes(data.ai_model) ? 'gemini-3.1-flash-lite' : data.ai_model;
+          if (state.settings.aiModel !== cloudModel) {
+            state.settings.aiModel = cloudModel;
+            changed = true;
+          }
         }
         if (data.school_name && !state.settings.schoolParent) {
           state.settings.schoolParent = data.school_name;
